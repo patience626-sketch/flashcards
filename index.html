@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>單字測驗網站模板</title>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    .card { width: 280px; border: 1px solid #ccc; padding: 16px; border-radius: 12px; }
+    img { width: 100%; border-radius: 8px; }
+    button { margin: 6px 0; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+    .options button { display:block; width:100%; }
+  </style>
+</head>
+<body>
+
+<h1>單字測驗模板</h1>
+
+<div>
+  <h2>新增單字</h2>
+  <input id="wordCn" placeholder="中文" />
+  <input id="wordEn" placeholder="英文" />
+  <input id="wordImg" placeholder="圖片 URL" />
+  <button onclick="addWord()">新增單字</button>
+</div>
+
+<hr />
+
+<div id="quiz-area" class="card" style="display:none;"></div>
+<button id="startBtn" onclick="startQuiz()">開始測驗</button>
+
+<script>
+  let words = [];
+  let current = null;
+
+  function addWord() {
+    const cn = document.getElementById('wordCn').value;
+    const en = document.getElementById('wordEn').value;
+    const img = document.getElementById('wordImg').value;
+    if (!cn || !en) return alert('請輸入完整資料');
+    words.push({ cn, en, img });
+    alert('新增成功');
+  }
+
+  function startQuiz() {
+    if (words.length < 4) return alert('至少需要 4 個單字');
+    renderQuiz();
+  }
+
+  function renderQuiz() {
+    current = words[Math.floor(Math.random() * words.length)];
+    const choices = shuffle([...words])
+      .slice(0,3);
+    if (!choices.includes(current)) choices[Math.floor(Math.random()*3)] = current;
+
+    const quiz = document.getElementById('quiz-area');
+    quiz.style.display = 'block';
+    quiz.innerHTML = `
+      <img src="${current.img || ''}" alt="image" />
+      <h3>${current.cn}</h3>
+      <button onclick="playAudio()">🔊 播放發音</button>
+      <div class="options">
+        ${choices.map(c => `<button onclick=\"check('${c.en}')\">${c.en}</button>`).join('')}
+      </div>
+    `;
+    window.speech = new SpeechSynthesisUtterance(current.en);
+  }
+
+  function check(ans) {
+    if (ans === current.en) alert('答對了！');
+    else alert('答錯了，再加油！');
+    renderQuiz();
+  }
+
+  function playAudio() {
+    speechSynthesis.speak(window.speech);
+  }
+
+  function shuffle(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+</script>
+</body>
+</html>
